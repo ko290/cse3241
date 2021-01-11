@@ -1,0 +1,21 @@
+/*a*/
+SELECT a.Email, b.Email
+FROM SELLER_ACCOUNT AS a, BUYER_ACCOUNT AS b;
+
+
+/*b
+Let the given Virtual Inventory be identified by the unique name ‘Google Store’*/
+
+SELECT Item_name, MAX(b.Price)
+FROM VIRUAL_INVENTORY AS a, IP_Item AS b
+WHERE a. Store_name = ‘Google Store’
+AND a.Item_name = b.Item_name;
+
+
+/*c
+Let the given Support Account be identified by the unique email ‘smithybob@rocketmail.com’*/
+
+SELECT Seller_email, Buyer_email
+FROM SELLERS_MANAGED, BUYERS_MANAGED
+WHERE Seller_email = ‘smithybob@rocketmail.com’
+OR Buyer_email = ‘smithybob@rocketmail.com’;

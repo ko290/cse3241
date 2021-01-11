@@ -1,0 +1,58 @@
+/*a
+Let the given Seller be identified by the unique email ‘smithybob@rocketmail.com’*/
+
+SELECT Item_name
+FROM IP_ITEM AS a, VIRTUAL_INVENTORY AS b, INV_CONSISTSOF_IP_ITEMS AS c, SELL_ACCT_HOSTS_INV AS d
+WHERE d.Seller_email = ‘smithybob@rocketmail.com’
+AND d.Store_name = b.Store_name
+AND b.Store_name = c.Store_name
+AND c.Item_name = a.Item_name
+AND a.Price < 10.00;
+
+/*b
+Let the given Buyer be identified by the unique email ‘smithybob@rocketmail.com’*/
+
+SELECT a.Item_name, a.Date
+FROM TRANSACTION_RECORD AS a, BUYER_CONTAINS_TRANSACTION_RECORDS AS b
+WHERE b.Buyer_email = ‘smithybob@rocketmail.com’
+AND b.Transaction_num = a.Transaction_num;
+
+/*c*/
+SELECT a.Seller_email
+FROM SELL_ACCT_HOSTS_INV AS a, VIRTUAL_INVENTORY AS b, IP_ITEM AS c, INV_CONSISTSOF_IP_ITEMS AS d
+WHERE Count(c.Item_name) < 5
+AND c.Item_name = d.Item_name
+AND d.Store_name = b.Store_name
+AND b.Store_name = a.Store_name;
+
+/*d
+Let the given Seller be identified by the unique email ‘smithybob@rocketmail.com’*/
+
+SELECT g.Buyer_email, c.Item_name
+FROM SELL_ACCT_HOSTS_INV AS a, VIRTUAL_INVENTORY AS b, INV_CONSISTSOF_IP_ITEMS AS c, IP_ITEM AS d, TRANSACTION_RECORDS_CONSISTOF_IP_ITEMS AS e, TRANSACTION_RECORDS AS f, BUYER_CONTAINS_TRANSACTION_RECORDS AS g
+WHERE a.Seller_email = ‘smithybob@rocketmail.com’
+AND a.Store_name = b.Store_name
+AND b.Store_name = c.Store_name
+AND c.Item_name = d.Item_name
+AND d.Item_name = e.Item_name
+AND e.Transaction_num = f.Transaction_num
+AND f.Transaction_num = g.Transaction_num;
+
+/*e
+Let the given Buyer be identified by the unique email ‘smithybob@rocketmail.com’*/
+
+SELECT Count(a.Item_name)
+FROM TRANSACTION_RECORD AS a, BUYER_CONTAINS_TRANSACTION_RECORDS AS b
+WHERE b.Buyer_email = ‘smithybob@rocketmail.com’
+AND b.Transaction_num = a.Transaction_num;
+
+/*f*/
+CREATE VIEW Buyers_And_Items_Bought(Buyer_email, Buyer_item_count)
+AS
+SELECT b.Buyer_email, Count(a.Transaction_num)
+FROM TRANSACTION_RECORD AS a, BUYER_CONTAINS_TRANSACTION_RECORDS AS b
+WHERE b.Transaction_num = a.Transaction_num;
+
+SELECT *
+FROM Buyers_And_Items_Bought
+WHERE MAX(Buyer_item_count);

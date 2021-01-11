@@ -1,0 +1,127 @@
+/*a*/
+CREATE VIEW BUYERS_TOTALS(Buyer_name, Buyer_email, Transaction_total)
+SELECT a.Name, a.Email, SUM(d.Price)
+FROM BUYER_ACCOUNT AS a, BUYER_CONTAINS_TRANSACTION_RECORDS AS b, 
+TRANSACTION_RECORDS_CONSISTOF_IP_ITEMS AS c, IP_ITEM AS d
+WHERE a.Email = b.Buyer_email
+AND b.Transaction_num = c.Transaction_num
+AND c.item_name = d.Item_name
+GROUP BY a.Email;
+
+SELECT Buyer_name, Transaction_total
+FROM BUYER_BUYERS_TOTALS;
+
+/*b*/
+SELECT Buyer_name, Buyer_email
+FROM BUYER_BUYERS_TOTALS
+WHERE Total_spendings > AVG(Total_spendings);
+
+/*c*/
+CREATE VIEW ITEM_TRANSACTION_IDS
+SELECT I.Item_name, R.Transaction_num
+FROM IP_ITEM as I, TRANSACTION_RECORDS_CONSISTOF_IP_ITEMS as R
+WHERE I.Item_name = R.Item_name;
+
+CREATE VIEW ITEM_TRANSACTIONS
+SELECT I.Item_name, R.Transaction_num
+FROM ITEM_TRANSACTION_IDS as I, TRANSACTION_RECORD as R
+WHERE I.Transaction_num = R.Transaction_num;
+
+CREATE VIEW IP_ITEM_SOLD_COPIES
+SELECT Item_name, count(distinct Item_name)
+FROM ITEM_TRANSACTIONS
+ORDER BY 2 DESC;
+
+/*d*/
+CREATE VIEW ITEM_TRANSACTION_IDS
+SELECT I.Item_name, I.Price, R.Transaction_num
+FROM IP_ITEM as I, TRANSACTION_RECORDS_CONSISTOF_IP_ITEMS as R
+WHERE I.Item_name = R.Item_name;
+
+CREATE VIEW ITEM_TRANSACTIONS
+SELECT I.Item_name, I.Price, R.Transaction_num
+FROM ITEM_TRANSACTION_IDS as I, TRANSACTION_RECORD as R
+WHERE I.Transaction_num = R.Transaction_num;
+
+SELECT Item_name, sum(Price)
+FROM ITEM_TRANSACTIONS
+GROUP BY Item_name;
+
+/*e*/
+CREATE VIEW STORE_ITEMS(Seller_Email, Item_count)
+SELECT a.Seller_email, COUNT(b.Item_name)
+FROM SELL_ACCT_HOSTS_INV AS a, VIRTUAL_INVENTORY AS b, INV_CONSISTSOF_IP_ITEMS as c
+WHERE a.Store_name = b.Store_name AND b.Store_name = c.Store_name;
+
+CREATE VIEW SELLER_ITEMS(Seller_email, Total_items)
+SELECT COUNT(b.Item_count)
+FROM SELLER_ACCOUNT AS a, STORE_ITEMS AS b
+WHERE a.Email = b.Seller_email;
+
+SELECT a.Name
+FROM SELLER_ACCOUNT AS a, SELLER_ITEMS AS b
+WHERE MAX(b.Total_items)
+AND b.Seller_email = a.Email;
+
+/*f*/
+CREATE VIEW STORE_REVENUE(Seller_email, Store_money)
+SELECT a.Store_name, SUM(b.Price)
+FROM SELL_ACCT_HOSTS_INV AS a, VIRTUAL_INVENTORY AS b, INV_CONSISTSOF_IP_ITEMS as c
+WHERE a.Store_name = b.Store_name AND b.Store_name = c.Store_name;
+
+CREATE VIEW SELLER_REVENUE(Seller_email, Total_revenue)
+SELECT SUM(b.Store_money)
+FROM SELLER_ACCOUNT AS a, STORE_REVENUE AS b
+WHERE a.Email = b.Seller_email;
+
+SELECT a.Name
+FROM SELLER_ACCOUNT AS a, SELLER_REVENUE AS b
+WHERE MAX(b.Total_revenue)
+AND b.Seller_email = a.Email;
+
+/*g
+Let the given Seller be identified by the unique email ‘smithybob@rocketmail.com’ using the query above*/
+
+CREATE VIEW SELLER_INV
+SELECT VI.Store_name
+FROM SELL_ACCT_HOSTS_INV AS SAHI, VIRTUAL_INVENTORY AS VI
+WHERE SAHI.Store_name = VI.Store_name AND SAHI.Seller_email = “smithybob@rocketmail.com”;
+
+CREATE VIEW INV_ITEMS
+SELECT II.Item_name
+FROM SELLER_INV AS SI, INV_CONSISTSOF_IP_ITEMS AS ICII, IP_ITEM as II
+WHERE SI.Store_name = ICII.Store_name AND II.Item_name = ICII.Item_name
+
+CREATE VIEW TRANSACTIONS
+SELECT TR.Transaction_num
+FROM INV_ITEMS AS II, TRANSACTION_RECORDS_CONSISTOF_IP_ITEMS AS CO, TRANSACTION_RECORDS AS TR
+WHERE CO.Item_name = II.Item_name AND CO.Transaction_num = TR.Transaction_num
+
+SELECT B.Name
+FROM TRANSACTIONS AS T, BUYER_ACCOUNT AS B, BUYER_CONTAINS_TRANSACTION_RECORDS AS BCTR
+WHERE BCTR.Transaction_num = T.Transaction_num AND BCTR.Buyer_email = B.Email
+
+/*h*/
+CREATE VIEW BUYER_TRANSACTIONS
+SELECT BCTR.Buyer_email, BCTR.Transaction_num, TR.Store_name
+FROM TRANSACTION_RECORDS AS TR, BUYER_CONTAINS_TRANSACTION_RECORDS AS BCTR
+WHERE BCTR.Transaction_num = TR.Transaction_num
+
+CREATE VIEW TRANSACTION_ITEMS
+SELECT BT.Buyer_email, BT.Store_num, II.Price
+FROM BUYER_TRANSACTIONS AS BT, TRANSACTION_RECORDS_CONSISTOF_IP_ITEMS AS CO, IP_ITEM AS II,
+WHERE CO.Transaction_num = BT.Transaction_num AND CO.Item_name = II.Item_name
+
+CREATE VIEW BUYER_TOTALS
+SELECT Buyer_email, Store_num, sum(Price)
+FROM TRANSACTION_ITEMS
+GROUP BY Buyer_email
+
+CREATE VIEW BUYERS_HIGH_SPENDING
+SELECT Buyer_email, Store_num
+FROM BUYER_TOTALS
+WHERE Price > avg(price)
+
+SELECT S.Name
+FROM SELL_ACCT_HOSTS_INV AS SAHI, BUYERS_HIGH_SPENDING AS BHS, SELLER_ACCOUNT AS S
+WHERE SAHI.Store_name = BHS.Store_num AND SAHI.Seller_email = S.Email
